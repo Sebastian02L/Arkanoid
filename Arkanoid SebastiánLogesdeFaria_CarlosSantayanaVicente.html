@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Arkanoid </title>
+
+        <link href="https://fonts.cdnfonts.com/css/common-pixel" rel="stylesheet">
+
+        <style>
+            /*ESTILOS APLICADOS AL CONTENIDO WEB*/
+
+            /*Letra pixel importada*/
+            @import url('https://fonts.cdnfonts.com/css/common-pixel');
+
+            body {
+                background-color: black;
+            }
+
+            p {
+                color: white;
+                font-family: 'Common Pixel', sans-serif;
+                display: inline-block;
+            }
+
+            div{
+                width: 600px;
+                height: 800px;
+                margin: 0 auto;
+            }
+
+            canvas {
+                background-color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <!--CONTENIDO WEB-->
+        <div>
+            <span style="line-height: 0px;">
+                <p id="parrafoJugador">PLAYER 1</p>
+                <p style="float:right">HIGH SCORE</p>
+                <br>
+                <p id="parrafoPuntos">00</p>
+                <p id="parrafoHighScore" style="float:right">50000</p>
+            </span>
+            <canvas id="lienzo" width="600" height="600"></canvas>
+
+            <p align="center" style="display:block">Sebastián Loges de Faria (Y8469372G) <br> y <br> Carlos Santayana Vicente (02583832N). <br> Fecha de Entrega: 15/01/2023</p>
+        </div>
+
+        <!--JAVASCRIPT-->
+        <script>
+            //VARIABLES DE ELEMENTOS HTML
+            var canvas = document.getElementById("lienzo");
+            var contexto = canvas.getContext("2d");
+
+            var parrafoJugador = document.getElementById("parrafoJugador");
+            var parrafoPuntos = document.getElementById("parrafoPuntos");
+            var parrafoHighScore = document.getElementById("parrafoHighScore");
+
+            //IMAGENES
+            var spriteFondo = document.createElement("img");
+            spriteFondo.src = "./fondo.png";
+
+            var spriteBordeIzquierdo = document.createElement("img");
+            spriteBordeIzquierdo.src = "./borde_Izquierdo.png";
+
+            var spriteBordeDerecho = document.createElement("img");
+            spriteBordeDerecho.src = "./borde_Derecho.png";
+
+            var spriteBordeSuperior = document.createElement("img");
+            spriteBordeSuperior.src = "./borde_Arriba.png";
+
+            var spritePelota = document.createElement("img");
+            spritePelota.src = "./pelota.png";
+
+            var spriteRaqueta = document.createElement("img");
+            spriteRaqueta.src = "./raqueta.png";
+            
+            window.onload = function(){
+                //////////////////////MANEJADORES DE EVENTOS////////////////////////
+
+                window.addEventListener("mousemove", manejaRaton, false);
+
+                //////////////////////CLASES////////////////////////
+
+                //CLASE RAQUETA
+                function raqueta(xP, yP){
+                    this.x = xP;
+                    this.y = yP;
+                    this.vidas = 3;
+
+                    this.dibujarRaqueta = function(){
+                        contexto.drawImage(spriteRaqueta, this.x, this.y, 66, 20);
+                    }
+                }
+
+                //CLASE BLOQUE
+                function bloque(xP, yP, colorP, vidaP, estadoP){
+                    this.x = xP;
+                    this.y = yP;
+                    this.color = colorP;
+                    this.vida = vidaP;
+                    this.estado = estadoP;
+
+                    this.dibujarBloque = function(){
+                        contexto.fillStyle = this.color;
+                        contexto.lineWidth = 2;
+                        contexto.fillRect(this.x, this.y, 43.74, 20);
+                        contexto.strokeRect(this.x, this.y, 43.74, 20);
+                    }
+                }
+
+                ///////////////////////FUNCIONES///////////////////////
+
+                function manejaRaton(e){
+                    const canvasBorder = canvas.getBoundingClientRect();
+                    var canvasCoordX = e.pageX - canvasBorder.left;
+
+                    switch(e.type){
+                        case "mousemove":
+                            if(canvasCoordX<48.66){
+                                miRaqueta.x=15.66;
+                            }else if(canvasCoordX>551.34){
+                                miRaqueta.x=518.34;
+                            }else{
+                                miRaqueta.x = canvasCoordX - 33;
+                            }
+                            break;
+                    }
+                }
+
+                function redibuja(){
+                    contexto.clearRect(0, 0, 600, 600);
+                    contexto.drawImage(spriteFondo, 0, 0, 600, 600);
+                    contexto.drawImage(spriteBordeIzquierdo, 0, 0, 15.66, 600);
+                    contexto.drawImage(spriteBordeDerecho, 584.34, 0, 15.66, 600);
+                    contexto.drawImage(spriteBordeSuperior, 0, 0, 600, 19.11);
+                    miRaqueta.dibujarRaqueta();
+                    dibujarBloques();
+                    requestAnimationFrame(redibuja);
+                }
+
+                function crearBloques(){
+                    var posX = 15.66;
+                    var posY = 100;
+
+                    for(var i = 0; i < 6; ++i){
+                        var color;
+
+                        switch(i){
+                            case 0:
+                                color = "gray";
+                                break;
+                            case 1:
+                                color = "red";
+                                break;
+                            case 2:
+                                color = "yellow";
+                                break;
+                            case 3:
+                                color = "blue";
+                                break;
+                            case 4:
+                                color = "DeepPink";
+                                break;
+                            case 5:
+                                color = "lime";
+                                break;
+                        }
+        
+                        for(var j = 0; j < 13; ++j){
+                            bloques[i][j] = new bloque(posX, posY, color, 1, true);
+                            posX += 43.74
+                        }
+                        posX = 15.66;
+                        posY += 20;
+                    }
+                }
+
+                function dibujarBloques(){
+                    for(var i = 0; i < 6; ++i){
+                        for(var j = 0; j < 13; ++j){
+                            bloques[i][j].dibujarBloque();
+                        }
+                    }
+                }
+
+                function parpadeo(){
+                    if(parrafoEncendido){
+                        parrafoJugador.style.color = "black";
+                        parrafoEncendido = false;
+                    }else{
+                        parrafoEncendido = true;
+                        parrafoJugador.style.color = "white";
+                    }
+                }
+
+                ///////////////////////MAIN///////////////////////////  
+
+                //Variables
+                var temporizadorDecorativo = setInterval(parpadeo,1000);
+                var parrafoEncendido = true;
+
+                var bloques = [];
+                for (var i = 0; i < 6; ++i) {
+                    bloques[i] = new Array(13);
+                }
+
+                var miRaqueta = new raqueta(267, 550);
+
+                crearBloques();
+
+                requestAnimationFrame(redibuja);
+            }
+        </script>
+    </body>
+</html>
