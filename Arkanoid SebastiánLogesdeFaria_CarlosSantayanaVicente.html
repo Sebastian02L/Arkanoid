@@ -39,8 +39,8 @@
                 <p id="parrafoJugador">PLAYER 1</p>
                 <p style="float:right">HIGH SCORE</p>
                 <br>
-                <p id="parrafoPuntos">00</p>
-                <p id="parrafoHighScore" style="float:right">50000</p>
+                <p id="parrafoPuntos"></p>
+                <p id="parrafoHighScore" style="float:right"></p>
             </span>
             <canvas id="lienzo" width="600" height="600"></canvas>
 
@@ -80,6 +80,7 @@
                 //////////////////////MANEJADORES DE EVENTOS////////////////////////
 
                 window.addEventListener("mousemove", manejaRaton, false);
+                window.addEventListener("click", manejaRaton, false);
 
                 //////////////////////CLASES////////////////////////
 
@@ -88,27 +89,153 @@
                     this.x = xP;
                     this.y = yP;
                     this.vidas = 3;
+                    this.ancho = 66;
+                    this.alto = 20;
 
                     this.dibujarRaqueta = function(){
-                        contexto.drawImage(spriteRaqueta, this.x, this.y, 66, 20);
+                        contexto.drawImage(spriteRaqueta, this.x, this.y, this.ancho, this.alto);
+                    }
+
+                    this.dibujarVidas = function(){
+                        var x = 25;
+                        for(var i=0;i<this.vidas;++i){
+                            contexto.drawImage(spriteRaqueta,x,580,33,10);
+                            x+=40;
+                        }
+                    }
+
+                    this.estaViva=function(){
+                        if(this.vidas==-1){
+                            contexto.fillStyle="white";
+                            contexto.font="30px Common Pixel";
+                            contexto.fillText("PERDISTE EL JUEGO", 125, 270);
+                            contexto.fillStyle="black";
+                            reiniciarJuego();
+                        }
                     }
                 }
 
                 //CLASE BLOQUE
-                function bloque(xP, yP, colorP, vidaP, estadoP){
+                function bloque(xP, yP, colorP, estadoP, vidaP=1){
                     this.x = xP;
                     this.y = yP;
                     this.color = colorP;
-                    this.vida = vidaP;
                     this.estado = estadoP;
+                    this.vida = vidaP;
+                    this.ancho = 43.74;
+                    this.alto = 20;
 
                     this.dibujarBloque = function(){
-                        contexto.fillStyle = this.color;
-                        contexto.lineWidth = 2;
-                        contexto.fillRect(this.x, this.y, 43.74, 20);
-                        contexto.strokeRect(this.x, this.y, 43.74, 20);
+                        if(this.estado!=false){
+                            contexto.fillStyle = this.color;
+                            contexto.lineWidth = 2;
+                            contexto.fillRect(this.x, this.y, this.ancho, this.alto);
+                            contexto.strokeRect(this.x, this.y, this.ancho, this.alto);
+                        }
                     }
                 }
+
+                function pelota(xP,yP){
+                    this.x = xP;
+                    this.y = yP;
+                    this.ancho = 12;
+                    this.alto = 12;
+
+                    this.abajo = false;
+                    this.derecha = true;
+
+                    this.dibujarPelota = function(){
+                        contexto.drawImage(spritePelota,this.x,this.y,this.ancho,this.alto);
+                    }
+
+                    this.moverPelota = function(){
+                        //MOVIMIENTO EN EL EJE Y
+                        if(!this.abajo&&this.y>=15.66){
+                            this.y-=5;
+                        }else if(!this.abajo&&this.y<15.66){
+                            this.abajo = true;
+                            this.y+=2;
+                        }else if(this.abajo&&this.y<=624){
+                            this.y+=5;
+                        }else if(this.abajo&&this.y>624){
+                            this.abajo = false;
+                            this.y-=2;
+                        }
+
+                        //MOVIMIENTO EN EL EJE X
+                        if(!this.derecha&&this.x>=15.66){
+                            this.x-=5;
+                        }else if(!this.derecha&&this.x<15.66){
+                            this.derecha = true;
+                            this.x+=2;
+                        }else if(this.derecha&&this.x<=572.34){
+                            this.x+=5;
+                        }else if(this.derecha&&this.x>572.34){
+                            this.derecha = false;
+                            this.x-=2;
+                        }
+                    }
+
+                    this.detectaColisiones = function(){
+                        if (this.x < miRaqueta.x + miRaqueta.ancho && this.x + this.ancho > miRaqueta.x && this.y < miRaqueta.y + miRaqueta.alto && this.alto + this.y > miRaqueta.y){ 
+                            if(this.abajo){
+                                this.abajo = false;
+                            }else{
+                                this.abajo = true;
+                            }
+                            if((this.x+6)<(miRaqueta.x+33)){
+                                this.derecha = false;
+                            }else{
+                                this.derecha = true;
+                            }
+                        }
+
+                        for(var i=0;i<6;++i){  
+                            for(var j=0;j<13;++j){
+                                if (this.x < bloques[i][j].x + bloques[i][j].ancho && this.x + this.ancho > bloques[i][j].x && this.y < bloques[i][j].y + bloques[i][j].alto && this.alto + this.y > bloques[i][j].y){
+                                    if(bloques[i][j].color == "red" && bloques[i][j].estado==true){
+                                        score+=90;
+                                    }else if(bloques[i][j].color == "gray" && bloques[i][j].estado==true && bloques[i][j].vida == 1){
+                                        score+=50;
+                                    }else if(bloques[i][j].color == "lime" && bloques[i][j].estado==true){
+                                        score+=80;
+                                    }else if(bloques[i][j].color == "blue" && bloques[i][j].estado==true){
+                                        score+=100;
+                                    }else if(bloques[i][j].color == "DeepPink" && bloques[i][j].estado==true){
+                                        score+=110;
+                                    }else if(bloques[i][j].color == "yellow" && bloques[i][j].estado==true){
+                                        score+=120;
+                                    }
+
+                                    bloques[i][j].vida -= 1;
+
+                                    if(bloques[i][j].vida==0){
+                                        bloques[i][j].estado = false;
+                                    }
+                                }
+                            }
+                        }
+
+                        if(score>highScore){
+                            highScore = score;
+                        }
+
+                        parrafoPuntos.innerHTML = score;
+                        parrafoHighScore.innerHTML = highScore;
+                    }
+
+                    this.estaFuera = function(){
+                        if(this.y>612){
+                            start = false;
+                            this.x = 294;
+                            this.y = 512;
+                            miRaqueta.x = 267;
+                            miRaqueta.y = 525;
+                            miRaqueta.vidas-=1;
+                        }
+                    }
+                }
+
 
                 ///////////////////////FUNCIONES///////////////////////
 
@@ -119,11 +246,25 @@
                     switch(e.type){
                         case "mousemove":
                             if(canvasCoordX<48.66){
-                                miRaqueta.x=15.66;
+                                miRaqueta.x = 15.66;
+                                if(!start){
+                                    miPelota.x = 42.66;
+                                }
                             }else if(canvasCoordX>551.34){
-                                miRaqueta.x=518.34;
+                                miRaqueta.x = 518.34;
+                                if(!start){
+                                    miPelota.x = 545.34;
+                                }
                             }else{
                                 miRaqueta.x = canvasCoordX - 33;
+                                if(!start){
+                                    miPelota.x = miRaqueta.x + 27;
+                                }
+                            }
+                            break;
+                        case "click":
+                            if (e.button == 0){
+                                start = true;
                             }
                             break;
                     }
@@ -136,7 +277,16 @@
                     contexto.drawImage(spriteBordeDerecho, 584.34, 0, 15.66, 600);
                     contexto.drawImage(spriteBordeSuperior, 0, 0, 600, 19.11);
                     miRaqueta.dibujarRaqueta();
+                    miPelota.dibujarPelota();
+                    miRaqueta.dibujarVidas();
                     dibujarBloques();
+                    miPelota.detectaColisiones();
+                    if(start){
+                        miPelota.moverPelota();
+                    }
+
+                    miPelota.estaFuera();
+                    miRaqueta.estaViva();
                     requestAnimationFrame(redibuja);
                 }
 
@@ -169,7 +319,11 @@
                         }
         
                         for(var j = 0; j < 13; ++j){
-                            bloques[i][j] = new bloque(posX, posY, color, 1, true);
+                            if(i==0){
+                                bloques[i][j] = new bloque(posX, posY, color, true, 2);
+                            }else{
+                                bloques[i][j] = new bloque(posX, posY, color, true);
+                            }
                             posX += 43.74
                         }
                         posX = 15.66;
@@ -195,18 +349,64 @@
                     }
                 }
 
+                function reiniciarJuego(){
+                    setTimeout(auxiliarSleep,1);
+                }
+
+                function auxiliarSleep(){
+                    sleep(5000);
+                    highScore = 50000;
+                    score = 0;
+
+                    parrafoHighScore.innerHTML = highScore;
+                    parrafoPuntos.innerHTML = score;
+
+                    clearInterval(temporizadorDecorativo);
+                    temporizadorDecorativo = setInterval(parpadeo,1000);
+                    parrafoEncendido = true;
+
+                    start = false;
+
+                    bloques = [];
+                    for (var i = 0; i < 6; ++i) {
+                        bloques[i] = new Array(13);
+                    }
+
+                    miRaqueta = new raqueta(267, 525);
+                    miPelota = new pelota(294,512);
+
+                    crearBloques();
+
+                    requestAnimationFrame(redibuja);
+                }
+
+                function sleep (milisegundos){
+                    var start = new Date().getTime();
+                    while(new Date().getTime() < start + milisegundos);
+                }
+
                 ///////////////////////MAIN///////////////////////////  
 
                 //Variables
                 var temporizadorDecorativo = setInterval(parpadeo,1000);
                 var parrafoEncendido = true;
 
+                var highScore = 50000;
+                var score = 0;
+
+                parrafoHighScore.innerHTML = highScore;
+                parrafoPuntos.innerHTML = score;
+
+                var start = false;
+
                 var bloques = [];
                 for (var i = 0; i < 6; ++i) {
                     bloques[i] = new Array(13);
                 }
 
-                var miRaqueta = new raqueta(267, 550);
+                var miRaqueta = new raqueta(267, 525);
+
+                var miPelota = new pelota(294,512);
 
                 crearBloques();
 
