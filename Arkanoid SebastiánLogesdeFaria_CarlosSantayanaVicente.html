@@ -106,10 +106,13 @@
 
                     this.estaViva=function(){
                         if(this.vidas==-1){
+                            var scoreFinal = score;
                             contexto.fillStyle="white";
                             contexto.font="30px Common Pixel";
-                            contexto.fillText("PERDISTE EL JUEGO", 125, 270);
+                            contexto.fillText("GAME OVER", 200, 270);
+                            contexto.fillText("SCORE: " + scoreFinal,200,310);
                             contexto.fillStyle="black";
+                            reiniciando = true;
                             reiniciarJuego();
                         }
                     }
@@ -227,6 +230,7 @@
                     this.estaFuera = function(){
                         if(this.y>612){
                             start = false;
+                            this.derecha = true;
                             this.x = 294;
                             this.y = 512;
                             miRaqueta.x = 267;
@@ -265,6 +269,7 @@
                         case "click":
                             if (e.button == 0){
                                 start = true;
+                                insertCoin = false;
                             }
                             break;
                     }
@@ -280,6 +285,12 @@
                     miPelota.dibujarPelota();
                     miRaqueta.dibujarVidas();
                     dibujarBloques();
+                    if(insertCoin){
+                        contexto.fillStyle="white";
+                        contexto.font="30px Common Pixel";
+                        contexto.fillText("INSERT COIN (CLICK)", 125, 270);
+                        contexto.fillStyle="black";
+                    }
                     miPelota.detectaColisiones();
                     if(start){
                         miPelota.moverPelota();
@@ -287,7 +298,10 @@
 
                     miPelota.estaFuera();
                     miRaqueta.estaViva();
-                    requestAnimationFrame(redibuja);
+
+                    if(!reiniciando){
+                        requestAnimationFrame(redibuja);
+                    }
                 }
 
                 function crearBloques(){
@@ -350,11 +364,7 @@
                 }
 
                 function reiniciarJuego(){
-                    setTimeout(auxiliarSleep,1);
-                }
-
-                function auxiliarSleep(){
-                    sleep(5000);
+                    //sleep(5000);
                     highScore = 50000;
                     score = 0;
 
@@ -366,6 +376,7 @@
                     parrafoEncendido = true;
 
                     start = false;
+                    insertCoin = true;
 
                     bloques = [];
                     for (var i = 0; i < 6; ++i) {
@@ -377,6 +388,15 @@
 
                     crearBloques();
 
+                    setTimeout(reinicio,5000);
+
+                    /*if(!reiniciando){
+                        requestAnimationFrame(redibuja);
+                    }*/
+                }
+
+                function reinicio(){
+                    reiniciando = false;
                     requestAnimationFrame(redibuja);
                 }
 
@@ -391,6 +411,8 @@
                 var temporizadorDecorativo = setInterval(parpadeo,1000);
                 var parrafoEncendido = true;
 
+                var reiniciando = false;
+
                 var highScore = 50000;
                 var score = 0;
 
@@ -398,6 +420,7 @@
                 parrafoPuntos.innerHTML = score;
 
                 var start = false;
+                var insertCoin = true;
 
                 var bloques = [];
                 for (var i = 0; i < 6; ++i) {
