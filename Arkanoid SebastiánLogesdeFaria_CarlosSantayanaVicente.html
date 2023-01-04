@@ -3,13 +3,13 @@
     <head>
         <title> Arkanoid </title>
 
-        <link href="https://fonts.cdnfonts.com/css/common-pixel" rel="stylesheet">
+        <link href="https://fonts.cdnfonts.com/css/pf-tempesta-seven" rel="stylesheet">
 
         <style>
             /*ESTILOS APLICADOS AL CONTENIDO WEB*/
 
             /*Letra pixel importada*/
-            @import url('https://fonts.cdnfonts.com/css/common-pixel');
+            @import url('https://fonts.cdnfonts.com/css/pf-tempesta-seven');
 
             body {
                 background-color: black;
@@ -17,7 +17,7 @@
 
             p {
                 color: white;
-                font-family: 'Common Pixel', sans-serif;
+                font-family: 'PF Tempesta Seven', sans-serif;
                 display: inline-block;
             }
 
@@ -42,9 +42,10 @@
                 <p id="parrafoPuntos"></p>
                 <p id="parrafoHighScore" style="float:right"></p>
             </span>
+            
             <canvas id="lienzo" width="600" height="600"></canvas>
 
-            <p align="center" style="display:block">Sebastián Loges de Faria (Y8469372G) <br> y <br> Carlos Santayana Vicente (02583832N). <br> Fecha de Entrega: 15/01/2023</p>
+            <p align="center" style="display:block">Sebastián Loges de Faria (Y8469372G) <br> y <br> Carlos Santayana Vicente (02583832N). <br><br> Fecha de Entrega: 15/01/2023 <br><br> Los sonidos para la realización de este proyecto fueron extraídos de la página <a href="https://www.sounds-resource.com/nes/arkanoid/sound/3698/">The Sounds Resource</a>.<br> Dicha página autoriza el uso de los recursos de audio de forma no lucrativa.</p>
         </div>
 
         <!--JAVASCRIPT-->
@@ -75,27 +76,44 @@
 
             var spriteRaqueta = document.createElement("img");
             spriteRaqueta.src = "./raqueta.png";
+
+            //SONIDOS
+            var reboteRaqueta = document.createElement("audio");
+            reboteRaqueta.src = "./ReboteRaqueta.wav";
+
+            var reboteBloque = document.createElement("audio");
+            reboteBloque.src = "./ReboteBloques.wav";
+
+            var muerte = document.createElement("audio");
+            muerte.src = "./Muerte.wav";
+
+            var reboteGris = document.createElement("audio");
+            reboteGris.src = "./ReboteGris.wav";
             
             window.onload = function(){
-                //////////////////////MANEJADORES DE EVENTOS////////////////////////
+                /////////////////////////////////////////MANEJADORES DE EVENTOS////////////////////////////////////
 
                 window.addEventListener("mousemove", manejaRaton, false);
                 window.addEventListener("click", manejaRaton, false);
 
-                //////////////////////CLASES////////////////////////
+                /////////////////////////////////////////////CLASES///////////////////////////////////////////////
 
-                //CLASE RAQUETA
+                ///////////////////////CLASE RAQUETA////////////////////////
                 function raqueta(xP, yP){
+                    //////ATRIBUTOS//////
                     this.x = xP;
                     this.y = yP;
-                    this.vidas = 3;
+                    this.vidas = 2;
                     this.ancho = 66;
                     this.alto = 20;
 
+                    //////////////////METODOS///////////////////
+                    //DIBUJA LA RAQUETA
                     this.dibujarRaqueta = function(){
                         contexto.drawImage(spriteRaqueta, this.x, this.y, this.ancho, this.alto);
                     }
 
+                    //DIBUJA EL NUMERO DE VIDAS ACTUAL
                     this.dibujarVidas = function(){
                         var x = 25;
                         for(var i=0;i<this.vidas;++i){
@@ -104,12 +122,29 @@
                         }
                     }
 
+                    //COMPRUEBA SI EL JUGADOR TIENE MENOS DE 0 VIDAS, EN CUYO CASO, SE ACABARA LA PARTIDA
                     this.estaViva=function(){
                         if(this.vidas==-1){
+                            muerte.load();
+                            muerte.play();
                             var scoreFinal = score;
                             contexto.fillStyle="white";
-                            contexto.font="30px Common Pixel";
+                            contexto.font="30px PF Tempesta Seven";
                             contexto.fillText("GAME OVER", 200, 270);
+                            contexto.fillText("SCORE: " + scoreFinal,200,310);
+                            contexto.fillStyle="black";
+                            reiniciando = true;
+                            reiniciarJuego();
+                        }
+                    }
+
+                    //COMPRUEBA SI EL JUGADOR HA GANADO
+                    this.haGanado=function(){
+                        if(numBloques == 0){
+                            var scoreFinal = score;
+                            contexto.fillStyle="white";
+                            contexto.font="30px PF Tempesta Seven";
+                            contexto.fillText("YOU WIN!", 200, 270);
                             contexto.fillText("SCORE: " + scoreFinal,200,310);
                             contexto.fillStyle="black";
                             reiniciando = true;
@@ -118,8 +153,9 @@
                     }
                 }
 
-                //CLASE BLOQUE
+                ///////////////////////CLASE BLOQUE////////////////////////
                 function bloque(xP, yP, colorP, estadoP, vidaP=1){
+                    //////ATRIBUTOS//////
                     this.x = xP;
                     this.y = yP;
                     this.color = colorP;
@@ -128,6 +164,8 @@
                     this.ancho = 43.74;
                     this.alto = 20;
 
+                    //////////////////METODOS///////////////////
+                    //SE ENCARGA DE DIBUJAR EL BLOQUE SIEMPRE Y CUANDO ESTE NO HAYA SIDO DESTRUIDO
                     this.dibujarBloque = function(){
                         if(this.estado!=false){
                             contexto.fillStyle = this.color;
@@ -137,8 +175,9 @@
                         }
                     }
                 }
-
+                ///////////////////////CLASE PELOTA////////////////////////
                 function pelota(xP,yP){
+                    //////ATRIBUTOS//////
                     this.x = xP;
                     this.y = yP;
                     this.ancho = 12;
@@ -149,54 +188,85 @@
                     this.abajo = false;
                     this.derecha = true;
 
+                    //////////////////METODOS///////////////////
+                    //SE ENCARGA DE DIBUJAR LA PELOTA
                     this.dibujarPelota = function(){
                         contexto.drawImage(spritePelota,this.x,this.y,this.ancho,this.alto);
                     }
 
+                    //SE ENCARGA DE MOVER LA PELOTA
                     this.moverPelota = function(){
                         //MOVIMIENTO EN EL EJE Y
-                        if(!this.abajo&&this.y>=15.66){
+                        if(!this.abajo&&this.y>=15.66){//MOVIMIENTO NEGATIVO EN VERTICAL
                             this.y-=this.velocidadY;
-                        }else if(!this.abajo&&this.y<15.66){
+                        }else if(!this.abajo&&this.y<15.66){//REBOTE CON PARED SUPERIOR
                             this.abajo = true;
                             this.y+=this.velocidadY;
-                        }else if(this.abajo&&this.y<=624){
+                        }else if(this.abajo&&this.y<=624){//MOVIMIENTO POSITIVO EN VERTICAL
                             this.y+=this.velocidadY;
-                        }else if(this.abajo&&this.y>624){
+                        }else if(this.abajo&&this.y>624){//REBOTE CON PARED INFERIOR
                             this.abajo = false;
                             this.y-=this.velocidadY;
                         }
 
                         //MOVIMIENTO EN EL EJE X
-                        if(!this.derecha&&this.x>=15.66){
+                        if(!this.derecha&&this.x>=15.66){//MOVIMIENTO NEGATIVO EN HORIZONTAL
                             this.x-=this.velocidadX;
-                        }else if(!this.derecha&&this.x<15.66){
+                        }else if(!this.derecha&&this.x<15.66){//REBOTE CON PARED IZQUIERDA
                             this.derecha = true;
                             this.x+=this.velocidadX;
-                        }else if(this.derecha&&this.x<=572.34){
+                        }else if(this.derecha&&this.x<=572.34){//MOVIMIENTO POSITIVO EN HORIZONTAL
                             this.x+=this.velocidadX;
-                        }else if(this.derecha&&this.x>572.34){
+                        }else if(this.derecha&&this.x>572.34){//REBOTE CON PARED DERECHA
                             this.derecha = false;
                             this.x-=this.velocidadX;
                         }
                     }
 
+                    //LLEVA A CABO LA GESTION DE LAS COLISIONES
                     this.detectaColisiones = function(){
+                        var centroPelotaX = this.x + this.ancho/2;
+                        var centroPelotaY = this.y + this.alto/2;
+                        //COLISION RAQUETA
                         if (this.x < miRaqueta.x + miRaqueta.ancho && this.x + this.ancho > miRaqueta.x && this.y < miRaqueta.y + miRaqueta.alto && this.alto + this.y > miRaqueta.y){ 
+                            reboteRaqueta.load();
+                            reboteRaqueta.play();
+                            
                             this.abajo = false;
-                            if((this.x+6)<(miRaqueta.x+33)){
+
+                            if(this.velocidadY == 4){
+                                this.velocidadY = 2;
+                                this.velocidadX = 4;
+                            }
+
+                            if(this.velocidadX == 4){
+                                this.velocidadY = 4;
+                                this.velocidadX = 2;
+                            }
+                            
+                            if(centroPelotaX<(miRaqueta.x+22)){//SI GOLPEA CON EL TERCIO IZQUIERDO
                                 this.derecha = false;
-                            }else{
+                            }else if(centroPelotaX>(miRaqueta.x+44)){//SI GOLPEA CON EL TERCIO DERECHO
                                 this.derecha = true;
+                            }else{//SI GOLPEA EN EL TERCIO CENTRAL
+                                this.velocidadX = 1;
                             }
                         }
 
+                        //COLISION BLOQUES 
                         for(var i=0;i<6;++i){  
                             for(var j=0;j<13;++j){
                                 if (this.x < bloques[i][j].x + bloques[i][j].ancho && this.x + this.ancho > bloques[i][j].x && this.y < bloques[i][j].y + bloques[i][j].alto && this.alto + this.y > bloques[i][j].y){
-                                    var centroPelotaX = this.x + this.ancho/2;
-                                    var centroPelotaY = this.y + this.alto/2;
+                                   
+                                    if(bloques[i][j].vida == 2 && bloques[i][j].estado==true && bloques[i][j].color == "gray"){
+                                        reboteGris.load();
+                                        reboteGris.play();
+                                    } else if (bloques[i][j].estado==true){
+                                        reboteBloque.load();
+                                        reboteBloque.play();
+                                    }
 
+                                    //CONTROL DE PUNTUACION
                                     if(bloques[i][j].color == "red" && bloques[i][j].estado==true){
                                         score+=90;
                                     }else if(bloques[i][j].color == "gray" && bloques[i][j].estado==true && bloques[i][j].vida == 1){
@@ -211,45 +281,57 @@
                                         score+=120;
                                     }
 
-                                    if(bloques[i][j].y + bloques[i][j].alto < centroPelotaY && bloques[i][j].estado==true){
+                                    //REBOTE CON LOS BLOQUES Y CONTROL DE VELOCIDAD
+                                    if(bloques[i][j].y + bloques[i][j].alto < centroPelotaY && bloques[i][j].estado==true){//SI COLISIONA POR DEBAJO
                                         this.abajo = true;
-                                        if(this.velocidadY<8){
+                                        if(this.velocidadY<4){
                                             this.velocidadY+=0.5;
-                                        }else{
-                                            this.velocidadY = 8;
-                                        }
-                                    }else if(bloques[i][j].y > centroPelotaY && bloques[i][j].estado==true){
-                                        this.abajo = false;
-                                        if(this.velocidadY<8){
-                                            this.velocidadY+=0.5;
-                                        }else{
-                                            this.velocidadY = 8;
-                                        }
-                                    }else if(bloques[i][j].x > centroPelotaX && bloques[i][j].estado==true){
-                                        this.derecha = false;
-                                        if(this.velocidadX<8){
                                             this.velocidadX+=0.5;
-                                        }else{
-                                            this.velocidadX = 8;
                                         }
-                                    }else if(bloques[i][j].x + bloques[i][j].ancho < centroPelotaX && bloques[i][j].estado==true){
-                                        this.derecha = true;
-                                        if(this.velocidadX<8){
+                                    }else if(bloques[i][j].y > centroPelotaY && bloques[i][j].estado==true){//SI COLISIONA POR ARRIBA
+                                        this.abajo = false;
+                                        if(this.velocidadY<4){
                                             this.velocidadY+=0.5;
-                                        }else{
-                                            this.velocidadX = 8;
+                                            this.velocidadX+=0.5;
+                                        }
+                                    }else if(bloques[i][j].x > centroPelotaX && bloques[i][j].estado==true){//SI COLISIONA POR LA IZQUIERDA
+                                        this.derecha = false;
+                                        if(this.velocidadX<4){
+                                            this.velocidadY-=0.5;
+                                            this.velocidadX+=0.5;
+                                        }
+                                    }else if(bloques[i][j].x + bloques[i][j].ancho < centroPelotaX && bloques[i][j].estado==true){//SI COLISIONA POR LA DERECHA
+                                        this.derecha = true;
+                                        if(this.velocidadX<4){
+                                            this.velocidadY-=0.5;
+                                            this.velocidadX+=0.5;
                                         }
                                     }
 
-                                    bloques[i][j].vida -= 1;
+                                    if(this.velocidadX<0){
+                                        this.velocidadX = 0;
+                                    }
+                                    if(this.velocidadX>4){
+                                        this.velocidadX = 4;
+                                    }
+                                    if(this.velocidadY<0){
+                                        this.velocidadY = 0;
+                                    }
+                                    if(this.velocidadY>4){
+                                        this.velocidadY = 4;
+                                    }
 
-                                    if(bloques[i][j].vida==0){
+                                    bloques[i][j].vida -= 1; //RESTA VIDA AL BLOQUE
+
+                                    if(bloques[i][j].vida==0){//SI NO TIENE VIDA, EL BLOQUE SE ELIMINA
                                         bloques[i][j].estado = false;
+                                        numBloques--;
                                     }
                                 }
                             }
                         }
 
+                        //ACTUALIZAMOS EL HIGHSCORE SI ES NECESARIO, ASI COMO LOS PARRAFOS DE LAS PUNTUACIONES
                         if(score>highScore){
                             highScore = score;
                         }
@@ -258,6 +340,7 @@
                         parrafoHighScore.innerHTML = highScore;
                     }
 
+                    //COMPRUEBA SI LA PELOTA SE SALE
                     this.estaFuera = function(){
                         if(this.y>612){
                             start = false;
@@ -276,6 +359,7 @@
 
                 ///////////////////////FUNCIONES///////////////////////
 
+                //FUNCION ENCARGADA DE GESTIONAR LOS EVENTOS DE RATON
                 function manejaRaton(e){
                     const canvasBorder = canvas.getBoundingClientRect();
                     var canvasCoordX = e.pageX - canvasBorder.left;
@@ -308,6 +392,7 @@
                     }
                 }
 
+                //FUNCION DE REDIBUJADO
                 function redibuja(){
                     contexto.clearRect(0, 0, 600, 600);
                     contexto.drawImage(spriteFondo, 0, 0, 600, 600);
@@ -320,7 +405,7 @@
                     dibujarBloques();
                     if(insertCoin){
                         contexto.fillStyle="white";
-                        contexto.font="30px Common Pixel";
+                        contexto.font="30px PF Tempesta Seven";
                         contexto.fillText("INSERT COIN (CLICK)", 125, 270);
                         contexto.fillStyle="black";
                     }
@@ -331,12 +416,14 @@
 
                     miPelota.estaFuera();
                     miRaqueta.estaViva();
+                    miRaqueta.haGanado();
 
                     if(!reiniciando){
                         requestAnimationFrame(redibuja);
                     }
                 }
 
+                //FUNCION ENCARGADA DE CREAR LOS BLOQUES AL COMIENZO DE LA PARTIDA
                 function crearBloques(){
                     var posX = 15.66;
                     var posY = 100;
@@ -378,6 +465,7 @@
                     }
                 }
 
+                //FUNCION QUE DIBUJA EL CONJUNTO TOTAL DE BLOQUES
                 function dibujarBloques(){
                     for(var i = 0; i < 6; ++i){
                         for(var j = 0; j < 13; ++j){
@@ -386,6 +474,7 @@
                     }
                 }
 
+                //LA SIGUIENTE FUNCION SE ENCARGA DE SIMULAR EL PARPADEO DEL PARRAFO "PLAYER 1". FIN DECORATIVO
                 function parpadeo(){
                     if(parrafoEncendido){
                         parrafoJugador.style.color = "black";
@@ -396,8 +485,10 @@
                     }
                 }
 
+                //REINICIA EL JUEGO PARA COMENZAR UNA NUEVA PARTIDA
                 function reiniciarJuego(){
                     score = 0;
+                    numBloques = 78;
 
                     parrafoHighScore.innerHTML = highScore;
                     parrafoPuntos.innerHTML = score;
@@ -409,7 +500,7 @@
                     start = false;
                     insertCoin = true;
 
-                    bloques = [];
+                    bloques = new Array(6);
                     for (var i = 0; i < 6; ++i) {
                         bloques[i] = new Array(13);
                     }
@@ -425,11 +516,6 @@
                 function reinicio(){
                     reiniciando = false;
                     requestAnimationFrame(redibuja);
-                }
-
-                function sleep (milisegundos){
-                    var start = new Date().getTime();
-                    while(new Date().getTime() < start + milisegundos);
                 }
 
                 ///////////////////////MAIN///////////////////////////  
@@ -448,6 +534,8 @@
 
                 var start = false;
                 var insertCoin = true;
+
+                var numBloques = 78;
 
                 var bloques = [];
                 for (var i = 0; i < 6; ++i) {
