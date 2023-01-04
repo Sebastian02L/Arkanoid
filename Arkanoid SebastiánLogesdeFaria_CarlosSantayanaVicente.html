@@ -143,6 +143,8 @@
                     this.y = yP;
                     this.ancho = 12;
                     this.alto = 12;
+                    this.velocidadX = 1;
+                    this.velocidadY = 1;
 
                     this.abajo = false;
                     this.derecha = true;
@@ -154,38 +156,34 @@
                     this.moverPelota = function(){
                         //MOVIMIENTO EN EL EJE Y
                         if(!this.abajo&&this.y>=15.66){
-                            this.y-=5;
+                            this.y-=this.velocidadY;
                         }else if(!this.abajo&&this.y<15.66){
                             this.abajo = true;
-                            this.y+=2;
+                            this.y+=this.velocidadY;
                         }else if(this.abajo&&this.y<=624){
-                            this.y+=5;
+                            this.y+=this.velocidadY;
                         }else if(this.abajo&&this.y>624){
                             this.abajo = false;
-                            this.y-=2;
+                            this.y-=this.velocidadY;
                         }
 
                         //MOVIMIENTO EN EL EJE X
                         if(!this.derecha&&this.x>=15.66){
-                            this.x-=5;
+                            this.x-=this.velocidadX;
                         }else if(!this.derecha&&this.x<15.66){
                             this.derecha = true;
-                            this.x+=2;
+                            this.x+=this.velocidadX;
                         }else if(this.derecha&&this.x<=572.34){
-                            this.x+=5;
+                            this.x+=this.velocidadX;
                         }else if(this.derecha&&this.x>572.34){
                             this.derecha = false;
-                            this.x-=2;
+                            this.x-=this.velocidadX;
                         }
                     }
 
                     this.detectaColisiones = function(){
                         if (this.x < miRaqueta.x + miRaqueta.ancho && this.x + this.ancho > miRaqueta.x && this.y < miRaqueta.y + miRaqueta.alto && this.alto + this.y > miRaqueta.y){ 
-                            if(this.abajo){
-                                this.abajo = false;
-                            }else{
-                                this.abajo = true;
-                            }
+                            this.abajo = false;
                             if((this.x+6)<(miRaqueta.x+33)){
                                 this.derecha = false;
                             }else{
@@ -196,6 +194,9 @@
                         for(var i=0;i<6;++i){  
                             for(var j=0;j<13;++j){
                                 if (this.x < bloques[i][j].x + bloques[i][j].ancho && this.x + this.ancho > bloques[i][j].x && this.y < bloques[i][j].y + bloques[i][j].alto && this.alto + this.y > bloques[i][j].y){
+                                    var centroPelotaX = this.x + this.ancho/2;
+                                    var centroPelotaY = this.y + this.alto/2;
+
                                     if(bloques[i][j].color == "red" && bloques[i][j].estado==true){
                                         score+=90;
                                     }else if(bloques[i][j].color == "gray" && bloques[i][j].estado==true && bloques[i][j].vida == 1){
@@ -208,6 +209,36 @@
                                         score+=110;
                                     }else if(bloques[i][j].color == "yellow" && bloques[i][j].estado==true){
                                         score+=120;
+                                    }
+
+                                    if(bloques[i][j].y + bloques[i][j].alto < centroPelotaY && bloques[i][j].estado==true){
+                                        this.abajo = true;
+                                        if(this.velocidadY<8){
+                                            this.velocidadY+=0.5;
+                                        }else{
+                                            this.velocidadY = 8;
+                                        }
+                                    }else if(bloques[i][j].y > centroPelotaY && bloques[i][j].estado==true){
+                                        this.abajo = false;
+                                        if(this.velocidadY<8){
+                                            this.velocidadY+=0.5;
+                                        }else{
+                                            this.velocidadY = 8;
+                                        }
+                                    }else if(bloques[i][j].x > centroPelotaX && bloques[i][j].estado==true){
+                                        this.derecha = false;
+                                        if(this.velocidadX<8){
+                                            this.velocidadX+=0.5;
+                                        }else{
+                                            this.velocidadX = 8;
+                                        }
+                                    }else if(bloques[i][j].x + bloques[i][j].ancho < centroPelotaX && bloques[i][j].estado==true){
+                                        this.derecha = true;
+                                        if(this.velocidadX<8){
+                                            this.velocidadY+=0.5;
+                                        }else{
+                                            this.velocidadX = 8;
+                                        }
                                     }
 
                                     bloques[i][j].vida -= 1;
@@ -236,6 +267,8 @@
                             miRaqueta.x = 267;
                             miRaqueta.y = 525;
                             miRaqueta.vidas-=1;
+                            this.velocidadX = 1;
+                            this.velocidadY = 1;
                         }
                     }
                 }
@@ -364,8 +397,6 @@
                 }
 
                 function reiniciarJuego(){
-                    //sleep(5000);
-                    highScore = 50000;
                     score = 0;
 
                     parrafoHighScore.innerHTML = highScore;
@@ -389,10 +420,6 @@
                     crearBloques();
 
                     setTimeout(reinicio,5000);
-
-                    /*if(!reiniciando){
-                        requestAnimationFrame(redibuja);
-                    }*/
                 }
 
                 function reinicio(){
@@ -413,7 +440,7 @@
 
                 var reiniciando = false;
 
-                var highScore = 50000;
+                var highScore = 0;
                 var score = 0;
 
                 parrafoHighScore.innerHTML = highScore;
