@@ -197,14 +197,14 @@
                     //SE ENCARGA DE MOVER LA PELOTA
                     this.moverPelota = function(){
                         //MOVIMIENTO EN EL EJE Y
-                        if(!this.abajo&&this.y>=15.66){//MOVIMIENTO NEGATIVO EN VERTICAL
-                            this.y-=this.velocidadY;
+                        if(!this.abajo && this.y >= 15.66){//MOVIMIENTO NEGATIVO EN VERTICAL
+                            this.y -= this.velocidadY;
                         }else if(!this.abajo&&this.y<15.66){//REBOTE CON PARED SUPERIOR
                             this.abajo = true;
-                            this.y+=this.velocidadY;
-                        }else if(this.abajo&&this.y<=624){//MOVIMIENTO POSITIVO EN VERTICAL
-                            this.y+=this.velocidadY;
-                        }else if(this.abajo&&this.y>624){//REBOTE CON PARED INFERIOR
+                            this.y += this.velocidadY;
+                        }else if(this.abajo && this.y <= 624){//MOVIMIENTO POSITIVO EN VERTICAL
+                            this.y += this.velocidadY;
+                        }else if(this.abajo && this.y >624){//REBOTE CON PARED INFERIOR
                             this.abajo = false;
                             this.y-=this.velocidadY;
                         }
@@ -345,6 +345,8 @@
                     //COMPRUEBA SI LA PELOTA SE SALE
                     this.estaFuera = function(){
                         if(this.y>612){
+                            muerte.load();
+                            muerte.play();
                             start = false;
                             this.derecha = true;
                             this.x = 294;
@@ -413,13 +415,6 @@
                         contexto.fillStyle="black";
                     }
                     
-                    miPelota.detectaColisiones();
-
-                    if(start){
-                        miPelota.moverPelota();
-                    }
-
-                    miPelota.estaFuera();
                     miRaqueta.estaViva();
                     miRaqueta.haGanado();
 
@@ -468,6 +463,17 @@
                         posX = 15.66;
                         posY += 20;
                     }
+                }
+
+                //FUNCION ENCARGADA DE ACTUALIZAR LA POSICION DE LA PELOTA A 60 FPS
+                function actualizaPelota(){
+                    
+                    if(start){
+                        miPelota.detectaColisiones();
+                        miPelota.moverPelota();
+                        miPelota.estaFuera();
+                    }
+
                 }
 
                 //FUNCION QUE DIBUJA EL CONJUNTO TOTAL DE BLOQUES
@@ -525,8 +531,9 @@
 
                 ///////////////////////MAIN///////////////////////////  
 
-                //Variables
+                //Variables auxiliares
                 var temporizadorDecorativo = setInterval(parpadeo,1000);
+                var temporizadorJuego;
                 var parrafoEncendido = true;
 
                 var reiniciando = false;
@@ -554,6 +561,7 @@
                 crearBloques();
 
                 requestAnimationFrame(redibuja);
+                temporizadorJuego = setInterval(actualizaPelota, 1000/60);
             }
         </script>
     </body>
