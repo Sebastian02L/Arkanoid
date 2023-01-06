@@ -210,16 +210,16 @@
                         }
 
                         //MOVIMIENTO EN EL EJE X
-                        if(!this.derecha&&this.x>=15.66){//MOVIMIENTO NEGATIVO EN HORIZONTAL
-                            this.x-=this.velocidadX;
-                        }else if(!this.derecha&&this.x<15.66){//REBOTE CON PARED IZQUIERDA
+                        if(!this.derecha && this.x >= 15.66){//MOVIMIENTO NEGATIVO EN HORIZONTAL
+                            this.x -= this.velocidadX;
+                        }else if(!this.derecha && this.x < 15.66){//REBOTE CON PARED IZQUIERDA
                             this.derecha = true;
-                            this.x+=this.velocidadX;
-                        }else if(this.derecha&&this.x<=572.34){//MOVIMIENTO POSITIVO EN HORIZONTAL
-                            this.x+=this.velocidadX;
-                        }else if(this.derecha&&this.x>572.34){//REBOTE CON PARED DERECHA
+                            this.x += this.velocidadX;
+                        }else if(this.derecha && this.x <= 572.34){//MOVIMIENTO POSITIVO EN HORIZONTAL
+                            this.x += this.velocidadX;
+                        }else if(this.derecha && this.x > 572.34){//REBOTE CON PARED DERECHA
                             this.derecha = false;
-                            this.x-=this.velocidadX;
+                            this.x -= this.velocidadX;
                         }
                     }
 
@@ -227,6 +227,7 @@
                     this.detectaColisiones = function(){
                         var centroPelotaX = this.x + this.ancho/2;
                         var centroPelotaY = this.y + this.alto/2;
+
                         //COLISION RAQUETA
                         if (this.x < miRaqueta.x + miRaqueta.ancho && this.x + this.ancho > miRaqueta.x && this.y < miRaqueta.y + miRaqueta.alto && this.alto + this.y > miRaqueta.y){ 
                             reboteRaqueta.load();
@@ -234,7 +235,8 @@
                             
                             this.abajo = false;
 
-                            if(this.velocidadY == 4){
+                            //VARIACION DE LA VELOCIDAD DE LA PELOTA
+                            if(this.velocidadY == 4){ 
                                 this.velocidadY = 2;
                                 this.velocidadX = 4;
                             }
@@ -403,13 +405,16 @@
                     miPelota.dibujarPelota();
                     miRaqueta.dibujarVidas();
                     dibujarBloques();
+
                     if(insertCoin){
                         contexto.fillStyle="white";
                         contexto.font="30px PF Tempesta Seven";
                         contexto.fillText("INSERT COIN (CLICK)", 125, 270);
                         contexto.fillStyle="black";
                     }
+                    
                     miPelota.detectaColisiones();
+
                     if(start){
                         miPelota.moverPelota();
                     }
